@@ -34,6 +34,21 @@ def login():
             return jsonify({"success": False})
     else:
         return jsonify({"success": False})
+    
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    name = data['username']
+    entry = users.find_one({"name":name})
+    if entry:
+        return jsonify({"success": False})
+    else:
+        user_info = {
+            "name": name,
+            "password": data["password"]
+        }
+        users.insert_one(user_info)
+        return jsonify({"success": True})    
 
 if __name__ == '__main__':
     app.run(debug=True)

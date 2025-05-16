@@ -24,7 +24,7 @@ const Login = () => {
       if (response.ok && result.success) {
         navigate('/success');
       } else {
-        alert('incorrect info');
+        alert('Incorrect username or password');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -33,7 +33,7 @@ const Login = () => {
 
   return (
     <div>
-      <h1>Login Page</h1>
+      <h1>Login</h1>
       <form onSubmit={handleSubmit}>
         <label>Username:</label>
         <input
@@ -57,6 +57,8 @@ const Login = () => {
         <br />
         <button type="submit">Log In</button>
       </form>
+
+      <p><a href="/register">Register for Free</a></p>
     </div>
   );
 };
