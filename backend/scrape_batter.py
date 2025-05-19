@@ -9,47 +9,45 @@ wait_time = 1
 
 # Load environment variables
 load_dotenv()
-msg = os.getenv("MESSAGE")
 mongo_url = os.getenv("MONGO_URI")
 
 # Connect to MongoDB
 client = MongoClient(mongo_url)
 db = client.cpblfantasy
-players = db.player
+batters = db.batter
 
 async def scraper():
-    browser =await launch(
+    browser = await launch(
       executablePath='C:/Program Files/Google/Chrome/Application/chrome.exe',
       headless=True
       )
     page = await browser.newPage()
     await page.goto('https://www.cpbl.com.tw/stats/recordall/')
 
+    #sort by G to get all players instead of qualified players
     await page.waitForSelector('th[data-sortby="02"]')
     await page.click('th[data-sortby="02"]')
-    await asyncio.sleep(wait_time)
 
     while True:
         await asyncio.sleep(wait_time)
         rows = await page.querySelectorAll('table tr')
-        first = True
 
         for row in rows:
-            if first:
-                first = False
-                continue
-
-            cells = await row.querySelectorAll('th, td')
+            cells = await row.querySelectorAll('td')
             row_data = []
             for cell in cells:
                 text = await page.evaluate('(el) => el.textContent', cell)
                 row_data.append(text.strip())
+
+            #skip title line
+            if (not cells):
+                continue
             
             columnzero = row_data[0].replace(' ', '').split('\n')
             playername = columnzero[-1]
             team = columnzero[-2]
 
-            players.update_one({"name": playername},
+            batters.update_one({"name": playername},
                                 {"$set": {"team": team,
                                           "avg": float(row_data[1]),
                                           "G": int(row_data[2]),
