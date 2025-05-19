@@ -3,6 +3,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 from pymongo import MongoClient
+import subprocess
 
 # Load environment variables
 load_dotenv()
@@ -49,6 +50,14 @@ def register():
         }
         users.insert_one(user_info)
         return jsonify({"success": True})    
+    
+@app.route('/fetch/playerdatabase', methods=['GET'])
+def fetch_playerdatabase():
+    try:
+        subprocess.run(['python3', 'webscraping.py'])
+        return jsonify({"success": True})
+    except:
+        return jsonify({"success": False})
 
 if __name__ == '__main__':
     app.run(debug=True)
