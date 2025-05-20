@@ -19,7 +19,7 @@ pitchers = db.pitcher
 async def scraper():
     browser = await launch(
       executablePath='C:/Program Files/Google/Chrome/Application/chrome.exe',
-      headless=False
+      headless=True
       )
     page = await browser.newPage()
     await page.goto('https://www.cpbl.com.tw/stats/recordall/')

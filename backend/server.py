@@ -20,7 +20,7 @@ CORS(app)
 
 @app.route('/')
 def home():
-    return msg
+    return "hello world"
 
 @app.route('/login', methods=['POST'])
 def login():

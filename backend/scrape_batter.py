@@ -24,6 +24,8 @@ async def scraper():
     page = await browser.newPage()
     await page.goto('https://www.cpbl.com.tw/stats/recordall/')
 
+    #get stats
+
     #sort by G to get all players instead of qualified players
     await page.waitForSelector('th[data-sortby="02"]')
     await page.click('th[data-sortby="02"]')
@@ -49,6 +51,7 @@ async def scraper():
 
             batters.update_one({"name": playername},
                                 {"$set": {"team": team,
+                                          "positions": ['Util'],
                                           "avg": float(row_data[1]),
                                           "G": int(row_data[2]),
                                           "PA": int(row_data[3]),
@@ -82,6 +85,49 @@ async def scraper():
         if not await page.querySelector('a[class="next"]'):
             break
         await page.click('a[class="next"]')
+
+    #get position
+
+    all_positions = ['IF', 'OF', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'Util']
+    for i in range(2, 10):
+        await page.select('#DefenceType', str(i))
+        await page.click('input[value="查詢"]')
+
+        while True:
+            await asyncio.sleep(wait_time)
+            rows = await page.querySelectorAll('table tr')
+
+            for row in rows:
+                cells = await row.querySelectorAll('td')
+                row_data = []
+                for cell in cells:
+                    text = await page.evaluate('(el) => el.textContent', cell)
+                    row_data.append(text.strip())
+
+                #skip title line
+                if (not cells):
+                    continue
+                
+                columnzero = row_data[0].replace(' ', '').split('\n')
+                playername = columnzero[-1]
+
+                position = batters.find_one({"name": playername})['positions']
+                position.append(all_positions[i])
+                #IF
+                if i >= 3 and i <= 6:
+                    position.append(all_positions[0])
+                #OF
+                if i >= 7:
+                    position.append(all_positions[1])
+                #make sure unique in list
+                position = list(set(position))
+
+                batters.update_one({"name": playername},
+                                {"$set": {"positions": position}})
+
+            if not await page.querySelector('a[class="next"]'):
+                break
+            await page.click('a[class="next"]')
 
     await browser.close()
 
