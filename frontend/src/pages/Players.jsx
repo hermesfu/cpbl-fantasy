@@ -17,7 +17,7 @@ const Players = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:5000/get_players', {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get_players`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
