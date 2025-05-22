@@ -5,14 +5,16 @@ import './App.css'
 import Login from './pages/Login'
 import Success from './pages/Success'
 import Register from './pages/Register'
+import Players from './pages/Players'
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/success" element={<Success />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/success" element={<Success />} />
+        <Route path="/players" element={<Players />} />
       </Routes>
     </Router>
   )

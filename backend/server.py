@@ -72,7 +72,7 @@ input data: batter(boolean, false if it's pitcher), categories(list of string),
             sortby(string), ascending(boolean)
 return: list of json of batter info filtered and sorted by the input request
 '''
-@app.route('/get_players', methods=['GET'])
+@app.route('/get_players', methods=['POST'])
 def get_players():
     request_data = request.json
 
