@@ -28,7 +28,7 @@ def home():
 
 '''
 Route to check login information and return success or not
-input data: username(string), passwrod(string)
+input: username(string), passwrod(string)
 return: success(boolean)
 '''
 @app.route('/login', methods=['POST'])
@@ -47,7 +47,7 @@ def login():
 '''
 Route to check register information and register in database if possible,
 return False if the username is already been taken
-input data: username(string), passwrod(string)
+input: username(string), passwrod(string)
 return: success(boolean)
 '''
 @app.route('/register', methods=['POST'])
@@ -66,13 +66,22 @@ def register():
         return jsonify({"success": True})
     
 '''
+Route to return the categories used with a given league
+input: league_name(string)
+return: categories(list of string)
+'''
+@app.route('/get/categories', methods=['GET'])
+def get_categories():
+    return jsonify({"categories": ["name", "team", "positions", "H", "HR", "R", "RBI", "SB"]})
+    
+'''
 Route to return json of batter data from database
-input data: batter(boolean, false if it's pitcher), categories(list of string),
+input: batter(boolean, false if it's pitcher), categories(list of string),
             name(string), positions(list of string),
             sortby(string), ascending(boolean)
 return: list of json of batter info filtered and sorted by the input request
 '''
-@app.route('/get_players', methods=['POST'])
+@app.route('/get/players', methods=['POST'])
 def get_players():
     request_data = request.json
 
@@ -84,13 +93,10 @@ def get_players():
                                     "name":{"$regex": request_data['name']}})
     player_data = pd.DataFrame(list(player_data))
 
-    columns = ["name", "positions"]
-    columns += request_data['categories']
-    player_data = player_data[columns]
-
+    player_data = player_data[request_data['categories']]
     player_data = player_data.sort_values(request_data['sortby'], ascending = request_data['ascending'])
 
-    return jsonify({"data": player_data.to_json(orient="records")})
+    return jsonify({"data": player_data.to_dict(orient="records")})
 
 if __name__ == '__main__':
     app.run(debug=True)
