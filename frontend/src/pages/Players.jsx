@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const Players = () => {
   const [columns, setColumns] = useState([]);
@@ -6,10 +7,17 @@ const Players = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const leagueName = queryParams.get('L');
+  const sortby = queryParams.get('C') || 'name';
+  const order = queryParams.get('S') || 'A';
+  const curAddress = `${import.meta.env.VITE_WEB_URL}/players/?L=${leagueName}`;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/categories`,
+        let response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/categories?${leagueName}`,
           {method: 'GET'});
         let result = await response.json();
         setColumns(result.categories);
@@ -19,8 +27,8 @@ const Players = () => {
           "categories": result.categories,
           "positions": ["C"],
           "name": "",
-          "sortby": "H",
-          "ascending": false
+          "sortby": sortby,
+          "ascending": (order === 'A')
         }
 
         response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/players`, {
@@ -51,9 +59,12 @@ const Players = () => {
       <table>
         <thead>
           <tr>
-            {columns.map(col => (
-              <th key={col}>{col}</th>
-            ))}
+            {columns.map(col => {
+              const sValue = (sortby === col && order === 'D') ? 'A' : 'D';
+              return (
+                <th key={col}><a href={`${curAddress}&C=${col}&S=${sValue}`}>{col}</a></th>
+              )}
+            )}
           </tr>
         </thead>
         <tbody>
