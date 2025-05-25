@@ -52,7 +52,7 @@ async def scraper():
             team = columnzero[-2]
 
             #SP or RP
-            positions = []
+            positions = ['P']
             if (int(row_data[3]) > 0):
                 positions.append("SP")
             if (int(row_data[4]) > 0):

@@ -72,12 +72,15 @@ return: categories(list of string)
 '''
 @app.route('/get/categories', methods=['GET'])
 def get_categories():
+    position = request.args.get('position')
+    if 'P' in position:
+        return jsonify({"categories": ["name", "team", "positions", "W", "L", "SV", "SO", "ERA"]})
     return jsonify({"categories": ["name", "team", "positions", "H", "HR", "R", "RBI", "SB"]})
     
 '''
 Route to return json of batter data from database
-input: batter(boolean, false if it's pitcher), categories(list of string),
-            name(string), positions(list of string),
+input: iaBatter(boolean, false if it's pitcher), categories(list of string),
+            name(string), positions(list of string), team(string)
             sortby(string), ascending(boolean)
 return: list of json of batter info filtered and sorted by the input request
 '''
@@ -85,9 +88,10 @@ return: list of json of batter info filtered and sorted by the input request
 def get_players():
     request_data = request.json
 
-    if (request_data['batter']):
+    if (request_data['iaBatter']):
         player_data = batters.find({"positions":{"$in": request_data['positions']},
-                                    "name":{"$regex": request_data['name']}})
+                                    "name":{"$regex": request_data['name']},
+                                    "team":{"$regex": request_data['team']}})
     else:
         player_data = pitchers.find({"positions":{"$in": request_data['positions']},
                                     "name":{"$regex": request_data['name']}})
