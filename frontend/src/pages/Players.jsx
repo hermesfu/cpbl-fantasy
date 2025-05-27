@@ -10,6 +10,7 @@ const Players = () => {
 
   const navigate = useNavigate();
 
+  //prcocess query string with queryParams
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const leagueName = queryParams.get('L') || '';
@@ -17,37 +18,32 @@ const Players = () => {
   const position = queryParams.get('P') || 'P';
   const sortby = queryParams.get('C') || 'name';
   const order = queryParams.get('S') || 'A';
-
   const teamAbbr = queryParams.get('T') || '';
-  let teamName = "";
-  switch(teamAbbr) {
-    case 'F':
-      teamName = "富邦悍將";
-      break;
-    case 'U':
-      teamName = "7-ELEVEn";
-      break;
-    case 'T':
-      teamName = "台鋼雄鷹";
-      break;
-    case 'R':
-      teamName = "樂天桃猿";
-      break;
-    case 'W':
-      teamName = "味全龍";
-      break;
-    case 'C':
-      teamName = "中信兄弟";
-      break;
-    default:
-      teamName = "";
-  }
 
-  let isBatter = !position.includes('P');
+  let teamName = "";
+  let isBatter = false;
+
+  //set value for selection based on parameter
+  let selectedPosition = 'Pitchers';
+  if (position === 'P') selectedPosition = 'Pitchers';
+  else if (position === 'Util') selectedPosition = 'Batters';
+  else selectedPosition = position;
+
+  let selectedTeam = 'All';
+  switch (teamAbbr) {
+    case 'F': selectedTeam = 'Fubon Guardian'; break;
+    case 'U': selectedTeam = 'Uni-President 7-ELEVEn Lions'; break;
+    case 'T': selectedTeam = 'TSG Hawks'; break;
+    case 'R': selectedTeam = 'Rakuten Monkeys'; break;
+    case 'W': selectedTeam = 'Wei Chuan Dragons'; break;
+    case 'C': selectedTeam = 'CTBC Brothers'; break;
+    default: selectedTeam = 'All';
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        //request categories by league name
         let response = await fetch(
           `${import.meta.env.VITE_SERVER_URL}/get/categories?league=${leagueName}&position=${position}`,
           {method: 'GET'}
@@ -55,6 +51,33 @@ const Players = () => {
         let result = await response.json();
         setColumns(result.categories);
 
+        //translate team in parameter string to full name
+        switch(teamAbbr) {
+          case 'F':
+            teamName = "富邦悍將";
+            break;
+          case 'U':
+            teamName = "7-ELEVEn";
+            break;
+          case 'T':
+            teamName = "台鋼雄鷹";
+            break;
+          case 'R':
+            teamName = "樂天桃猿";
+            break;
+          case 'W':
+            teamName = "味全龍";
+            break;
+          case 'C':
+            teamName = "中信兄弟";
+            break;
+          default:
+            teamName = "";
+        }
+
+        isBatter = !position.includes('P');
+
+        //request player data
         const requestData = {
           "iaBatter": isBatter,
           "categories": result.categories,
@@ -82,8 +105,9 @@ const Players = () => {
     };
 
     fetchData();
-  }, [leagueName, name, position, sortby, order, teamName]);
+  }, [leagueName, name, position, sortby, order, teamAbbr]);
 
+  //submission button in player search
   const handleSubmit = (e) => {
     e.preventDefault();
     const searchParams = new URLSearchParams(location.search);
@@ -91,19 +115,25 @@ const Players = () => {
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
+  //potision selection
   const handlePositionSelect = (e) => {
     const positionSelect = e.target.value;
     const searchParams = new URLSearchParams(location.search);
     if (positionSelect === 'Pitchers') searchParams.set('P', 'P');
     else if (positionSelect === 'Batters') searchParams.set('P', 'Util');
     else searchParams.set('P', positionSelect);
+    searchParams.set('C', 'name');
+    searchParams.set('S', 'A');
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
+  //team selection
   const handleTeamSelect = (e) => {
-    const positionSelect = e.target.value[0];
+    const teamSelect = e.target.value[0];
     const searchParams = new URLSearchParams(location.search);
-    searchParams.set('T', positionSelect);
+    searchParams.set('T', teamSelect);
+    searchParams.set('C', 'name');
+    searchParams.set('S', 'A');
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
@@ -121,7 +151,7 @@ const Players = () => {
 
       <div class="selection">
         <label>Position:</label>
-        <select onChange={handlePositionSelect} defaultValue="Pitchers">
+        <select onChange={handlePositionSelect} value={selectedPosition}>
             <option>Pitchers</option>
             <option>Batters</option>
             <option>SP</option>
@@ -139,7 +169,7 @@ const Players = () => {
           </select>
 
           <label>Team:</label>
-          <select onChange={handleTeamSelect} defaultValue="All">
+          <select onChange={handleTeamSelect} value={selectedTeam}>
               <option>All</option>
               <option>Fubon Guardian</option>
               <option>Uni-President 7-ELEVEn Lions</option>
@@ -167,9 +197,10 @@ const Players = () => {
         <tbody>
           {playerData.map((player) => (
             <tr key={player}>
-              {columns.map((col) => (
-                <td key={col}>{player[col]}</td>
-              ))}
+              {columns.map((col) => {
+                  if (col === "positions") return (<td key={col}>{player[col].toString()}</td>)
+                  else return (<td key={col}>{player[col]}</td>)
+              })}
             </tr>
           ))}
         </tbody>

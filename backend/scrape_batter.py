@@ -111,7 +111,10 @@ async def scraper():
                 columnzero = row_data[0].replace(' ', '').split('\n')
                 playername = columnzero[-1]
 
-                position = batters.find_one({"name": playername})['positions']
+                if not batters.find_one({"name": playername}):
+                    continue
+
+                position = batters.find_one({"name": playername})['positions']     
                 position.append(all_positions[i])
                 #IF
                 if i >= 3 and i <= 6:
@@ -120,7 +123,7 @@ async def scraper():
                 if i >= 7:
                     position.append(all_positions[1])
                 #make sure unique in list
-                position = list(set(position))
+                position = list(set(position)).sort()
 
                 batters.update_one({"name": playername},
                                 {"$set": {"positions": position}})

@@ -94,7 +94,8 @@ def get_players():
                                     "team":{"$regex": request_data['team']}})
     else:
         player_data = pitchers.find({"positions":{"$in": request_data['positions']},
-                                    "name":{"$regex": request_data['name']}})
+                                    "name":{"$regex": request_data['name']},
+                                    "team":{"$regex": request_data['team']}})
     player_data = pd.DataFrame(list(player_data))
 
     player_data = player_data[request_data['categories']]

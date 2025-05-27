@@ -57,6 +57,7 @@ async def scraper():
                 positions.append("SP")
             if (int(row_data[4]) > 0):
                 positions.append("RP")
+            positions.sort()
 
             pitchers.update_one({"name": playername},
                                 {"$set": {"team": team,
