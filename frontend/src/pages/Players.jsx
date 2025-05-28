@@ -7,6 +7,7 @@ const Players = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [keyword, setKeyword] = useState('');
+  const [totalPage, setTotalPage] = useState(0);
 
   const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ const Players = () => {
   const sortby = queryParams.get('C') || 'name';
   const order = queryParams.get('S') || 'A';
   const teamAbbr = queryParams.get('T') || '';
+  const page = Number(queryParams.get('page') || 1);
 
   let teamName = "";
   let isBatter = false;
@@ -85,7 +87,8 @@ const Players = () => {
           "name": name,
           "team": teamName,
           "sortby": sortby,
-          "ascending": (order === 'A')
+          "ascending": (order === 'A'),
+          "page": page
         }
 
         response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/players`, {
@@ -97,6 +100,7 @@ const Players = () => {
         });
         result = await response.json();
         setPlayerData(result.data);
+        setTotalPage(result.totalPage);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -105,7 +109,7 @@ const Players = () => {
     };
 
     fetchData();
-  }, [leagueName, name, position, sortby, order, teamAbbr]);
+  }, [leagueName, name, position, sortby, order, teamAbbr, page]);
 
   //submission button in player search
   const handleSubmit = (e) => {
@@ -205,6 +209,50 @@ const Players = () => {
           ))}
         </tbody>
       </table>
+          
+      <div>
+        { //previous button
+          page > 1 ? (
+            (() => {
+              const searchParams = new URLSearchParams(location.search);
+              searchParams.set('page', page - 1);
+              return (
+                <span><a href={`${location.pathname}?${searchParams.toString()}`}>prev</a>&emsp;</span>
+              );
+            })()
+          ) : (
+            <span>prev&emsp;</span>
+        )}
+
+        { //page number
+          Array.from({ length: totalPage }, (_, i) => {
+          const searchParams = new URLSearchParams(location.search);
+          searchParams.set('page', i + 1);
+          if (i + 1 != page) {
+            return (
+              <span key={i}><a href={`${location.pathname}?${searchParams.toString()}`}>{i + 1}</a>&emsp;</span>
+            )
+          } else {
+            //don't include link if it's current page
+            return (
+              <span key={i}>{i + 1}&emsp;</span>
+            )
+          }
+        })}
+        
+        { //next button
+          page < totalPage ? (
+            (() => {
+              const searchParams = new URLSearchParams(location.search);
+              searchParams.set('page', page + 1);
+              return (
+                <span><a href={`${location.pathname}?${searchParams.toString()}`}>next</a>&emsp;</span>
+              );
+            })()
+          ) : (
+            <span>next&emsp;</span>
+        )}
+      </div>
     </div>
   );
 };

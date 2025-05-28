@@ -5,6 +5,7 @@ import os
 from pymongo import MongoClient
 import subprocess
 import pandas as pd
+import math
 
 # Load environment variables
 load_dotenv()
@@ -81,8 +82,11 @@ def get_categories():
 Route to return json of batter data from database
 input: iaBatter(boolean, false if it's pitcher), categories(list of string),
             name(string), positions(list of string), team(string)
-            sortby(string), ascending(boolean)
-return: list of json of batter info filtered and sorted by the input request
+            sortby(string), ascending(boolean),
+            page(int)
+return: data(list of json of batter info filtered and sorted by the input request, 25 rows each page)
+        totalPage(int of total page of data)
+        curPage(int of current page)
 '''
 @app.route('/get/players', methods=['POST'])
 def get_players():
@@ -101,7 +105,16 @@ def get_players():
     player_data = player_data[request_data['categories']]
     player_data = player_data.sort_values(request_data['sortby'], ascending = request_data['ascending'])
 
-    return jsonify({"data": player_data.to_dict(orient="records")})
+    totalPage = math.ceil(player_data.shape[0] / 25)
+    start = (request_data['page'] - 1) * 25 + 1
+    end = start + 25
+
+    if start > player_data.shape[0]:
+        player_data = player_data[start :]
+    else:
+        player_data = player_data[start : end]
+    
+    return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
 
 if __name__ == '__main__':
     app.run(debug=True)
