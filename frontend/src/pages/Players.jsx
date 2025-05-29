@@ -116,6 +116,7 @@ const Players = () => {
     e.preventDefault();
     const searchParams = new URLSearchParams(location.search);
     searchParams.set('N', keyword);
+    searchParams.set('page', '1');
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
@@ -128,6 +129,7 @@ const Players = () => {
     else searchParams.set('P', positionSelect);
     searchParams.set('C', 'name');
     searchParams.set('S', 'A');
+    searchParams.set('page', '1');
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
@@ -138,6 +140,7 @@ const Players = () => {
     searchParams.set('T', teamSelect);
     searchParams.set('C', 'name');
     searchParams.set('S', 'A');
+    searchParams.set('page', '1');
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
