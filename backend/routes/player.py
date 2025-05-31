@@ -19,18 +19,6 @@ batters = db.batter
 pitchers = db.pitcher
 
 '''
-Route to return the categories used with a given league
-input: league_name(string)
-return: categories(list of string)
-'''
-@player_bp.route('/get/categories', methods=['GET'])
-def get_categories():
-    position = request.args.get('position')
-    if 'P' in position:
-        return jsonify({"categories": ["name", "team", "positions", "W", "L", "SV", "SO", "ERA"]})
-    return jsonify({"categories": ["name", "team", "positions", "H", "HR", "R", "RBI", "SB"]})
-    
-'''
 Route to return json of batter data from database
 input: iaBatter(boolean, false if it's pitcher), categories(list of string),
             name(string), positions(list of string), team(string)
