@@ -30,28 +30,31 @@ return: data(list of json of batter info filtered and sorted by the input reques
 '''
 @player_bp.route('/get/players', methods=['POST'])
 def get_players():
-    request_data = request.json
+    try:
+        request_data = request.json
 
-    if (request_data['iaBatter']):
-        player_data = batters.find({"positions":{"$in": request_data['positions']},
-                                    "name":{"$regex": request_data['name']},
-                                    "team":{"$regex": request_data['team']}})
-    else:
-        player_data = pitchers.find({"positions":{"$in": request_data['positions']},
-                                    "name":{"$regex": request_data['name']},
-                                    "team":{"$regex": request_data['team']}})
-    player_data = pd.DataFrame(list(player_data))
+        if (request_data['iaBatter']):
+            player_data = batters.find({"positions":{"$in": request_data['positions']},
+                                        "name":{"$regex": request_data['name']},
+                                        "team":{"$regex": request_data['team']}})
+        else:
+            player_data = pitchers.find({"positions":{"$in": request_data['positions']},
+                                        "name":{"$regex": request_data['name']},
+                                        "team":{"$regex": request_data['team']}})
+        player_data = pd.DataFrame(list(player_data))
+        
+        player_data = player_data[request_data['categories']]
+        player_data = player_data.sort_values(request_data['sortby'], ascending = request_data['ascending'])
 
-    player_data = player_data[request_data['categories']]
-    player_data = player_data.sort_values(request_data['sortby'], ascending = request_data['ascending'])
+        totalPage = math.ceil(player_data.shape[0] / 25)
+        start = (request_data['page'] - 1) * 25 + 1
+        end = start + 25
 
-    totalPage = math.ceil(player_data.shape[0] / 25)
-    start = (request_data['page'] - 1) * 25 + 1
-    end = start + 25
-
-    if start > player_data.shape[0]:
-        player_data = player_data[start :]
-    else:
-        player_data = player_data[start : end]
-    
-    return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
+        if start > player_data.shape[0]:
+            player_data = player_data[start :]
+        else:
+            player_data = player_data[start : end]
+        
+        return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
+    except:
+        return jsonify({"data": None, "totalPage": 0})

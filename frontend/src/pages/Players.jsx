@@ -45,15 +45,7 @@ const Players = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //request categories by league name
-        let response = await fetch(
-          `${import.meta.env.VITE_SERVER_URL}/get/categories?league=${leagueName}&position=${position}`,
-          {method: 'GET'}
-        );
-        let result = await response.json();
-        setColumns(result.categories);
-
-        //translate team in parameter string to full name
+                //translate team in parameter string to full name
         switch(teamAbbr) {
           case 'F':
             teamName = "富邦悍將";
@@ -79,10 +71,28 @@ const Players = () => {
 
         isBatter = !position.includes('P');
 
+        //request categories by league name
+        let response = null;
+        if (isBatter) {
+          response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/get/league?league_name=${leagueName}&value_name=categories_b`,
+                    {method: 'GET'}
+                  );
+        } else {
+          response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/get/league?league_name=${leagueName}&value_name=categories_p`,
+                    {method: 'GET'}
+                  );
+        }
+
+        let result = await response.json();
+        let allColumn = ['name', 'team', 'positions'].concat(result.value);
+        setColumns(allColumn);
+
         //request player data
         const requestData = {
           "iaBatter": isBatter,
-          "categories": result.categories,
+          "categories": allColumn,
           "positions": [position],
           "name": name,
           "team": teamName,
