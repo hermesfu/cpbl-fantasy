@@ -14,7 +14,7 @@ const Players = () => {
   //prcocess query string with queryParams
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const leagueName = queryParams.get('L') || '';
+  const leagueID = queryParams.get('L') || '';
   const name = queryParams.get('N') || '';
   const position = queryParams.get('P') || 'P';
   const sortby = queryParams.get('C') || 'name';
@@ -71,16 +71,16 @@ const Players = () => {
 
         isBatter = !position.includes('P');
 
-        //request categories by league name
+        //request categories by league id
         let response = null;
         if (isBatter) {
           response = await fetch(
-                    `${import.meta.env.VITE_SERVER_URL}/get/league?league_name=${leagueName}&value_name=categories_b`,
+                    `${import.meta.env.VITE_SERVER_URL}/get/league?league=${leagueID}&value=categories_b`,
                     {method: 'GET'}
                   );
         } else {
           response = await fetch(
-                    `${import.meta.env.VITE_SERVER_URL}/get/league?league_name=${leagueName}&value_name=categories_p`,
+                    `${import.meta.env.VITE_SERVER_URL}/get/league?league=${leagueID}&value=categories_p`,
                     {method: 'GET'}
                   );
         }
@@ -119,7 +119,7 @@ const Players = () => {
     };
 
     fetchData();
-  }, [leagueName, name, position, sortby, order, teamAbbr, page]);
+  }, [leagueID, name, position, sortby, order, teamAbbr, page]);
 
   //submission button in player search
   const handleSubmit = (e) => {
