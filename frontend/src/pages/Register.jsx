@@ -63,7 +63,7 @@ const Login = () => {
         <br />
         <label>Verify Password:</label>
         <input
-          type="vPassword"
+          type="password"
           name="vPassword"
           placeholder="Verify Password"
           required

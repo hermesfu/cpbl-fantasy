@@ -16,6 +16,8 @@ db = client.cpblfantasy
 
 leagues = db.league
 teams = db.team
+users = db.user
+rosters = db.roster
 
 '''
 Route to add a new team with given parameter
@@ -33,9 +35,34 @@ def create_team():
             'playerCount': 0
         })
 
+        rosters.insert_one({
+            '_id': result.inserted_id,
+            'C': [],
+            '1B': [],
+            '2B': [],
+            '3B': [],
+            'SS': [],
+            'LF': [],
+            'CF': [],
+            'RF': [],
+            'IF': [],
+            'OF': [],
+            'Util': [],
+            'SP': [],
+            'RP': [],
+            'P': [],
+            'BEN': [],
+            'O': []
+        })
+
         teamList = leagues.find_one({'_id': ObjectId(data['league'])})['teams']
         teamList.append(str(result.inserted_id))
         leagues.update_one({'_id': ObjectId(data['league'])},
+                           {'$set': {'teams': teamList}})
+        
+        teamList = users.find_one({'_id': ObjectId(data['user'])})['teams']
+        teamList.append(str(result.inserted_id))
+        users.update_one({'_id': ObjectId(data['user'])},
                            {'$set': {'teams': teamList}})
         
         return jsonify({"success": True})
@@ -85,16 +112,19 @@ def delete_team():
         if not teamToDelete:
             return jsonify({'success': False})
 
-        print(leagues.find_one({'_id': ObjectId(teamToDelete['league'])}))
         teamList = leagues.find_one({'_id': ObjectId(teamToDelete['league'])})['teams']
-
-        print(teamList)
-
         teamList.remove(request.args.get('team'))
         leagues.update_one({'_id': ObjectId(teamToDelete['league'])},
                            {'$set': {'teams': teamList}})
+        
+        teamList = users.find_one({'_id': ObjectId(teamToDelete['user'])})['teams']
+        teamList.remove(request.args.get('team'))
+        users.update_one({'_id': ObjectId(teamToDelete['user'])},
+                           {'$set': {'teams': teamList}})
 
         teams.delete_one({'_id': ObjectId(request.args.get('team'))})
+        rosters.delete_one({'_id': ObjectId(request.args.get('team'))})
+
         return jsonify({'success': True})
     except:
         return jsonify({'success': False})    

@@ -49,7 +49,8 @@ def register():
     else:
         user_info = {
             "name": name,
-            "password": data["password"]
+            "password": data["password"],
+            "teams": []
         }
         users.insert_one(user_info)
         return jsonify({"success": True})

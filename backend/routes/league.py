@@ -15,6 +15,7 @@ client = MongoClient(mongo_url)
 db = client.cpblfantasy
 
 leagues = db.league
+requirements = db.requirement
 
 '''
 Route to add a new league with given parameter
@@ -36,10 +37,34 @@ def create_league():
             'categories_b': data.get('categories_c', ['avg', 'R', 'RBI', 'HR', 'SB']),
             'isPointLeague': data.get('isPointLeague', False),
             'teams': [],
-            'maxTeams': data.get('maxTeams', 12)
+            'maxTeams': data.get('maxTeams', 12),
+            'minIP': data.get('minIP', 20)
         }
 
-        leagues.insert_one(teamSetting)
+        result = leagues.insert_one(teamSetting)
+
+        requirementSetting = {
+            '_id': result.inserted_id,
+            'C': data.get('C', 1),
+            '1B': data.get('1B', 1),
+            '2B': data.get('2B', 1),
+            '3B': data.get('3B', 1),
+            'SS': data.get('SS', 1),
+            'LF': data.get('LF', 0),
+            'CF': data.get('CF', 0),
+            'RF': data.get('RF', 0),
+            'IF': data.get('IF', 0),
+            'OF': data.get('OF', 3),
+            'Util': data.get('Util', 2),
+            'SP': data.get('SP', 2),
+            'RP': data.get('RP', 2),
+            'P': data.get('P', 4),
+            'BEN': data.get('BEN', 4),
+            'O': data.get('O', 2)
+        }
+
+        requirements.insert_one(requirementSetting)
+
         return jsonify({"success": True})
     except:
         return jsonify({"success": False})
@@ -86,6 +111,7 @@ def delete_league():
         if not leagues.find_one({'_id': ObjectId(request.args.get('league'))}):
             return jsonify({'success': False})
         leagues.delete_one({'_id': ObjectId(request.args.get('league'))})
+        requirements.delete_one({'_id': ObjectId(request.args.get('league'))})
         return jsonify({'success': True})
     except:
         return jsonify({'success': False})    
