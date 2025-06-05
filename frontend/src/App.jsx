@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Success from './pages/Success'
 import Register from './pages/Register'
 import Players from './pages/Players'
+import Team from './pages/Team'
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/success" element={<Success />} />
         <Route path="/players" element={<Players />} />
+        <Route path="/team" element={<Team />} />
       </Routes>
     </Router>
   )
