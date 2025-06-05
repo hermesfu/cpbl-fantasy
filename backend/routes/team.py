@@ -55,15 +55,10 @@ def create_team():
             'O': []
         })
 
-        teamList = leagues.find_one({'_id': ObjectId(data['league'])})['teams']
-        teamList.append(str(result.inserted_id))
         leagues.update_one({'_id': ObjectId(data['league'])},
-                           {'$set': {'teams': teamList}})
-        
-        teamList = users.find_one({'_id': ObjectId(data['user'])})['teams']
-        teamList.append(str(result.inserted_id))
+                           {"$push": {"teams": str(result.inserted_id)}})
         users.update_one({'_id': ObjectId(data['user'])},
-                           {'$set': {'teams': teamList}})
+                           {"$push": {"teams": str(result.inserted_id)}})
         
         return jsonify({"success": True})
     except:
@@ -111,16 +106,11 @@ def delete_team():
         teamToDelete = teams.find_one({'_id': ObjectId(request.args.get('team'))})
         if not teamToDelete:
             return jsonify({'success': False})
-
-        teamList = leagues.find_one({'_id': ObjectId(teamToDelete['league'])})['teams']
-        teamList.remove(request.args.get('team'))
-        leagues.update_one({'_id': ObjectId(teamToDelete['league'])},
-                           {'$set': {'teams': teamList}})
         
-        teamList = users.find_one({'_id': ObjectId(teamToDelete['user'])})['teams']
-        teamList.remove(request.args.get('team'))
+        leagues.update_one({'_id': ObjectId(teamToDelete['league'])},
+                           {"$pull": {"teams": request.args.get('team')}})
         users.update_one({'_id': ObjectId(teamToDelete['user'])},
-                           {'$set': {'teams': teamList}})
+                           {"$pull": {"teams": request.args.get('team')}})
 
         teams.delete_one({'_id': ObjectId(request.args.get('team'))})
         rosters.delete_one({'_id': ObjectId(request.args.get('team'))})
