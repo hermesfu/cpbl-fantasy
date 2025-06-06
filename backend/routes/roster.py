@@ -16,6 +16,7 @@ db = client.cpblfantasy
 
 rosters = db.roster
 teams = db.team
+player_state = db.player_state
 
 '''
 Route to return a player list in roster with a given id and position
@@ -40,13 +41,19 @@ return: success(boolean)
 def add_player():
     try:
         data = request.json
-        if not teams.find_one({"_id": data['team']}):
+        updated_team = teams.find_one({"_id": ObjectId(data['team'])})
+
+        if not updated_team:
             return jsonify({'success': False})
         
-        rosters.update_one({"_id": data['team']},
+        rosters.update_one({"_id": ObjectId(data['team'])},
                         {"$push": {data['position']: data['player']}})
-        teams.update_one({"_id": data['team']},
+        teams.update_one({"_id": ObjectId(data['team'])},
                          {"$inc": {"playerCount": 1}})
+        
+        player_state.insert_one({'player': data['player'],
+                              'league': updated_team['league'],
+                              'team': data['team']})
         
         return jsonify({'success': True})
     except:
@@ -61,13 +68,16 @@ return: success(boolean)
 def drop_player():
     try:
         data = request.json
-        if not teams.find_one({"_id": data['team']}):
+        if not teams.find_one({"_id": ObjectId(data['team'])}):
             return jsonify({'success': False})
         
-        rosters.update_one({"_id": data['team']},
+        rosters.update_one({"_id": ObjectId(data['team'])},
                         {"$pull": {data['position']: data['player']}})
-        teams.update_one({"_id": data['team']},
+        teams.update_one({"_id": ObjectId(data['team'])},
                          {"$inc": {"playerCount": -1}})
+        
+        player_state.delete_one({"team": data['team'],
+                                 "player": data['player']})
         
         return jsonify({'success': True})
     except:

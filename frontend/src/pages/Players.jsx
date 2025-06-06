@@ -14,7 +14,7 @@ const Players = () => {
   //prcocess query string with queryParams
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const leagueID = queryParams.get('L') || '';
+  const teamID = queryParams.get('TID') || '';
   const name = queryParams.get('N') || '';
   const position = queryParams.get('P') || 'P';
   const sortby = queryParams.get('C') || 'name';
@@ -22,6 +22,7 @@ const Players = () => {
   const teamAbbr = queryParams.get('T') || '';
   const page = Number(queryParams.get('page') || 1);
 
+  let leagueID = "";
   let teamName = "";
   let isBatter = false;
 
@@ -45,7 +46,14 @@ const Players = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-                //translate team in parameter string to full name
+        let response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/get/team?team=${teamID}&value=league`,
+                    {method: 'GET'}
+                );
+        let result = await response.json();
+        leagueID = result.value;
+
+        //translate team in parameter string to full name
         switch(teamAbbr) {
           case 'F':
             teamName = "富邦悍將";
@@ -72,7 +80,7 @@ const Players = () => {
         isBatter = !position.includes('P');
 
         //request categories by league id
-        let response = null;
+        response = null;
         if (isBatter) {
           response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/league?league=${leagueID}&value=categories_b`,
@@ -85,8 +93,8 @@ const Players = () => {
                   );
         }
 
-        let result = await response.json();
-        let allColumn = ['name', 'team', 'positions'].concat(result.value);
+        result = await response.json();
+        let allColumn = ['_id', 'name', 'team', 'positions'].concat(result.value);
         setColumns(allColumn);
 
         //request player data
@@ -154,6 +162,19 @@ const Players = () => {
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
+  const addPlayer = async(playerID) => {
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}//add/player`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({"team": teamID, "player": playerID, "position": "BEN"}),
+    });
+
+    result = await response.json();
+    alert(result.success);
+  }
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
@@ -201,6 +222,7 @@ const Players = () => {
         <thead>
           <tr>
             {columns.map(col => {
+              if (col === "_id") return (<th></th>);
               const sValue = (sortby === col && order === 'D') ? 'A' : 'D';
               const searchParams = new URLSearchParams(location.search);
               searchParams.set('C', col);
@@ -215,6 +237,7 @@ const Players = () => {
           {playerData.map((player) => (
             <tr key={player}>
               {columns.map((col) => {
+                  if (col === "_id") return (<td><button type="button" onClick={() => addPlayer(player[col].toString())}>Add</button></td>);
                   if (col === "positions") return (<td key={col}>{player[col].toString()}</td>)
                   else return (<td key={col}>{player[col]}</td>)
               })}

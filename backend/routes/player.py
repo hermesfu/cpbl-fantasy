@@ -54,6 +54,8 @@ def get_players():
             player_data = player_data[start :]
         else:
             player_data = player_data[start : end]
+
+        player_data['_id'] = player_data['_id'].apply(str)
         
         return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
     except:
