@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Players = () => {
@@ -8,6 +8,8 @@ const Players = () => {
   const [error, setError] = useState(null);
   const [keyword, setKeyword] = useState('');
   const [totalPage, setTotalPage] = useState(0);
+  const [updatePage, setUpdatePage] = useState(false);
+  const [leagueID, setLeagueID] = useState("");
   
   const navigate = useNavigate();
 
@@ -22,7 +24,6 @@ const Players = () => {
   const teamAbbr = queryParams.get('T') || '';
   const page = Number(queryParams.get('page') || 1);
 
-  let leagueID = "";
   let teamName = "";
   let isBatter = false;
 
@@ -51,7 +52,8 @@ const Players = () => {
                     {method: 'GET'}
                 );
         let result = await response.json();
-        leagueID = result.value;
+        setLeagueID(result.value);
+        const league = result.value;
 
         //translate team in parameter string to full name
         switch(teamAbbr) {
@@ -80,15 +82,14 @@ const Players = () => {
         isBatter = !position.includes('P');
 
         //request categories by league id
-        response = null;
         if (isBatter) {
           response = await fetch(
-                    `${import.meta.env.VITE_SERVER_URL}/get/league?league=${leagueID}&value=categories_b`,
+                    `${import.meta.env.VITE_SERVER_URL}/get/league?league=${league}&value=categories_b`,
                     {method: 'GET'}
                   );
         } else {
           response = await fetch(
-                    `${import.meta.env.VITE_SERVER_URL}/get/league?league=${leagueID}&value=categories_p`,
+                    `${import.meta.env.VITE_SERVER_URL}/get/league?league=${league}&value=categories_p`,
                     {method: 'GET'}
                   );
         }
@@ -107,7 +108,7 @@ const Players = () => {
           "sortby": sortby,
           "ascending": (order === 'A'),
           "page": page,
-          "league": leagueID
+          "league": league
         }
 
         response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/players`, {
@@ -131,7 +132,7 @@ const Players = () => {
     };
 
     fetchData();
-  }, [leagueID, name, position, sortby, order, teamAbbr, page]);
+  }, [leagueID, name, position, sortby, order, teamAbbr, page, updatePage]);
 
   //submission button in player search
   const handleSubmit = (e) => {
@@ -142,7 +143,7 @@ const Players = () => {
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
-  //potision selection
+  //position selection
   const handlePositionSelect = (e) => {
     const positionSelect = e.target.value;
     const searchParams = new URLSearchParams(location.search);
@@ -167,31 +168,68 @@ const Players = () => {
   }
 
   //function for add player button
-  const addPlayer = async(playerID) => {
-    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/add/player`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({"team": teamID, "player": playerID, "position": "BEN"}),
-    });
+  const addPlayer = async(playerID, positions) => {
+    let emptyPosition = null;
+    positions = positions.concat("BEN");
 
-    const result = await response.json();
-    alert(result.success);
+    for (const position of positions) {
+      let response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/requirement?league=${leagueID}&position=${position}`,
+                                  {method: 'GET'});
+      let result = await response.json();
+      let cnt = result.value;
+
+      response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/roster?team=${teamID}&position=${position}`,
+                                  {method: 'GET'});
+      result = await response.json();
+      cnt -= result.players.length;
+
+      if (cnt > 0) {
+        emptyPosition = position;
+        break;
+      }
+    }
+
+    if (!emptyPosition) alert("There is no space for the given player based on the player's positions and your team roster, please check again for your roster.");
+    else {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/add/player`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({"team": teamID, "player": playerID, "position": emptyPosition}),
+      });
+
+      alert("Add paleyr successfully!");
+
+      setUpdatePage(!updatePage);
+    }    
   }
 
   //function for drop player button
-  const dropPlayer = async(playerID) => {
-    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/drop/player`, {
+  const dropPlayer = async(playerID, positions) => {
+    let deletePosition = null;
+    positions = positions.concat("BEN");
+
+    for (const position of positions) {
+      let response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/roster?team=${teamID}&position=${position}`,
+                                  {method: 'GET'});
+      let result = await response.json();
+      if (result.players.includes(playerID)) {
+        deletePosition = position;
+        break;
+      }
+    }
+
+    await fetch(`${import.meta.env.VITE_SERVER_URL}/drop/player`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({"team": teamID, "player": playerID, "position": "BEN"}),
+      body: JSON.stringify({"team": teamID, "player": playerID, "position": deletePosition}),
     });
 
-    const result = await response.json();
-    alert(result.success);
+    alert("Drop paleyr successfully!");
+    setUpdatePage(!updatePage);
   }
 
   //function for drop player button
@@ -247,14 +285,16 @@ const Players = () => {
           <tr>
             {columns.map(col => {
               if (col === "_id") return (<th></th>);
-              const sValue = (sortby === col && order === 'D') ? 'A' : 'D';
-              const searchParams = new URLSearchParams(location.search);
-              searchParams.set('C', col);
-              searchParams.set('S', sValue);
-              return (
-                <th key={col}><a href={`${location.pathname}?${searchParams.toString()}`}>{col}</a></th>
-              )}
-            )}
+              else if (col !== "status") {
+                const sValue = (sortby === col && order === 'D') ? 'A' : 'D';
+                const searchParams = new URLSearchParams(location.search);
+                searchParams.set('C', col);
+                searchParams.set('S', sValue);
+                return (
+                  <th key={col}><a href={`${location.pathname}?${searchParams.toString()}`}>{col}</a></th>
+                )
+              }
+            })}
           </tr>
         </thead>
         <tbody>
@@ -263,9 +303,9 @@ const Players = () => {
               {columns.map((col) => {
                   if (col === "_id") {
                     if (player['status'] === null) {
-                      return (<td><button type="button" onClick={() => addPlayer(player[col].toString())}>Add</button></td>);
+                      return (<td><button type="button" onClick={() => addPlayer(player[col].toString(), player["positions"])}>Add</button></td>);
                     } else if (player['status'] == teamID) {
-                      return (<td><button type="button" onClick={() => dropPlayer(player[col].toString())}>Drop</button></td>);
+                      return (<td><button type="button" onClick={() => dropPlayer(player[col].toString(), player["positions"])}>Drop</button></td>);
                     } else {
                       return (<td><button type="button" onClick={() => tradePlayer(player[col].toString())}>Trade</button></td>);
                     }
