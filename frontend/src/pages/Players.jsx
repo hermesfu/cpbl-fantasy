@@ -8,7 +8,7 @@ const Players = () => {
   const [error, setError] = useState(null);
   const [keyword, setKeyword] = useState('');
   const [totalPage, setTotalPage] = useState(0);
-
+  
   const navigate = useNavigate();
 
   //prcocess query string with queryParams
@@ -94,7 +94,7 @@ const Players = () => {
         }
 
         result = await response.json();
-        let allColumn = ['_id', 'name', 'team', 'positions'].concat(result.value);
+        let allColumn = ['name', 'team', 'positions'].concat(result.value);
         setColumns(allColumn);
 
         //request player data
@@ -106,7 +106,8 @@ const Players = () => {
           "team": teamName,
           "sortby": sortby,
           "ascending": (order === 'A'),
-          "page": page
+          "page": page,
+          "league": leagueID
         }
 
         response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/players`, {
@@ -119,6 +120,9 @@ const Players = () => {
         result = await response.json();
         setPlayerData(result.data);
         setTotalPage(result.totalPage);
+
+        allColumn = ['_id', 'status'].concat(allColumn);
+        setColumns(allColumn);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -162,8 +166,9 @@ const Players = () => {
     navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
   }
 
+  //function for add player button
   const addPlayer = async(playerID) => {
-    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}//add/player`, {
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/add/player`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -171,8 +176,27 @@ const Players = () => {
       body: JSON.stringify({"team": teamID, "player": playerID, "position": "BEN"}),
     });
 
-    result = await response.json();
+    const result = await response.json();
     alert(result.success);
+  }
+
+  //function for drop player button
+  const dropPlayer = async(playerID) => {
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/drop/player`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({"team": teamID, "player": playerID, "position": "BEN"}),
+    });
+
+    const result = await response.json();
+    alert(result.success);
+  }
+
+  //function for drop player button
+  const tradePlayer = async(playerID) => {
+    alert("This feature have not been implemented yet");
   }
 
   if (loading) return <p>Loading...</p>;
@@ -237,9 +261,17 @@ const Players = () => {
           {playerData.map((player) => (
             <tr key={player}>
               {columns.map((col) => {
-                  if (col === "_id") return (<td><button type="button" onClick={() => addPlayer(player[col].toString())}>Add</button></td>);
-                  if (col === "positions") return (<td key={col}>{player[col].toString()}</td>)
-                  else return (<td key={col}>{player[col]}</td>)
+                  if (col === "_id") {
+                    if (player['status'] === null) {
+                      return (<td><button type="button" onClick={() => addPlayer(player[col].toString())}>Add</button></td>);
+                    } else if (player['status'] == teamID) {
+                      return (<td><button type="button" onClick={() => dropPlayer(player[col].toString())}>Drop</button></td>);
+                    } else {
+                      return (<td><button type="button" onClick={() => tradePlayer(player[col].toString())}>Trade</button></td>);
+                    }
+                  }
+                  else if (col === "positions") return (<td key={col}>{player[col].toString()}</td>)
+                  else if (col !== "status") return (<td key={col}>{player[col]}</td>)
               })}
             </tr>
           ))}

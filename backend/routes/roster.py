@@ -51,9 +51,9 @@ def add_player():
         teams.update_one({"_id": ObjectId(data['team'])},
                          {"$inc": {"playerCount": 1}})
         
-        player_state.insert_one({'player': data['player'],
-                              'league': updated_team['league'],
-                              'team': data['team']})
+        player_state.insert_one({'player': ObjectId(data['player']),
+                              'league': ObjectId(updated_team['league']),
+                              'team': ObjectId(data['team'])})
         
         return jsonify({'success': True})
     except:
@@ -76,8 +76,8 @@ def drop_player():
         teams.update_one({"_id": ObjectId(data['team'])},
                          {"$inc": {"playerCount": -1}})
         
-        player_state.delete_one({"team": data['team'],
-                                 "player": data['player']})
+        player_state.delete_one({"team": ObjectId(data['team']),
+                                 "player": ObjectId(data['player'])})
         
         return jsonify({'success': True})
     except:

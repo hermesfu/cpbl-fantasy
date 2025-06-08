@@ -4,6 +4,7 @@ import os
 from pymongo import MongoClient
 import pandas as pd
 import math
+from bson.objectid import ObjectId
 
 player_bp = Blueprint('player', __name__)
 
@@ -17,13 +18,14 @@ db = client.cpblfantasy
 
 batters = db.batter
 pitchers = db.pitcher
+player_state = db.player_state
 
 '''
 Route to return json of batter data from database
 input: iaBatter(boolean, false if it's pitcher), categories(list of string),
             name(string), positions(list of string), team(string)
             sortby(string), ascending(boolean),
-            page(int)
+            page(int), league(id)
 return: data(list of json of batter info filtered and sorted by the input request, 25 rows each page)
         totalPage(int of total page of data)
         curPage(int of current page)
@@ -42,8 +44,9 @@ def get_players():
                                         "name":{"$regex": request_data['name']},
                                         "team":{"$regex": request_data['team']}})
         player_data = pd.DataFrame(list(player_data))
-        
-        player_data = player_data[request_data['categories']]
+
+        all_categories = ['_id'] + request_data['categories']
+        player_data = player_data[all_categories]
         player_data = player_data.sort_values(request_data['sortby'], ascending = request_data['ascending'])
 
         totalPage = math.ceil(player_data.shape[0] / 25)
@@ -56,7 +59,12 @@ def get_players():
             player_data = player_data[start : end]
 
         player_data['_id'] = player_data['_id'].apply(str)
-        
+        player_data['status'] = player_data['_id'].apply(lambda id: 
+                                                         player_state.find_one({"league": ObjectId(request_data['league']),
+                                                        "player": ObjectId(id)}))
+        player_data['status'] = player_data['status'].apply(lambda entry: 
+                                                         str(entry['team']) if entry else None)
+                
         return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
     except:
         return jsonify({"data": None, "totalPage": 0})
