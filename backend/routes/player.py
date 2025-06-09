@@ -21,12 +21,12 @@ pitchers = db.pitcher
 player_state = db.player_state
 
 '''
-Route to return json of batter data from database
+Route to return json of player data from database
 input: iaBatter(boolean, false if it's pitcher), categories(list of string),
             name(string), positions(list of string), team(string)
             sortby(string), ascending(boolean),
             page(int), league(id)
-return: data(list of json of batter info filtered and sorted by the input request, 25 rows each page)
+return: data(list of json of players info filtered and sorted by the input request, 25 rows each page)
         totalPage(int of total page of data)
         curPage(int of current page)
 '''
@@ -68,3 +68,32 @@ def get_players():
         return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
     except:
         return jsonify({"data": None, "totalPage": 0})
+    
+'''
+Route to return json of player data from database with given players id
+input: players(2D list of [position, id]), categories(list of string), isBatter(boolean)
+return: data(list of json of players info)
+'''
+@player_bp.route('/search/players', methods=['POST'])
+def search_players():
+    try:
+        data = request.json
+        all_data = pd.DataFrame()
+
+        for player in data['players']:
+            player_data = None
+            if data['isBatter']:
+                player_data = batters.find_one({"_id": ObjectId(player[1])})
+            else:
+                player_data = pitchers.find_one({"_id": ObjectId(player[1])})
+
+            player_data = pd.DataFrame([player_data])       
+            player_data = player_data[data['categories']]
+            player_data["_id"] = player[1]
+            player_data["position"] = player[0]
+            all_data = pd.concat([all_data, player_data],  ignore_index = True)
+
+        return jsonify({"data": all_data.to_dict(orient="records")})
+    except Exception as e:
+        print(e)
+        return jsonify({"data": None})

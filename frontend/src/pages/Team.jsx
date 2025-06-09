@@ -6,13 +6,14 @@ const Team = () => {
     const [error, setError] = useState(null);
     const [columnsB, setColumnsB] = useState([]);
     const [columnsP, setColumnsP] = useState([]);
+    const [batterData, setBatterData] = useState(null);
+    const [pitcherData, setPitcherData] = useState(null);
+    const [name, setName] = useState("");
 
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
 
     const team = queryParams.get('T');
-    let league = "";
-    let name = "";
 
     useEffect(() => {
         const fetchData = async () => {
@@ -22,14 +23,14 @@ const Team = () => {
                     {method: 'GET'}
                 );
                 let result = await response.json();
-                league = result.value;
+                const league = result.value;
 
                 response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/team?team=${team}&value=name`,
                     {method: 'GET'}
                 );
                 result = await response.json();
-                name = result.value;
+                setName(result.value);
 
                 response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/league?league=${league}&value=categories_b`,
@@ -38,6 +39,7 @@ const Team = () => {
                 result = await response.json();
                 let allColumn = ['name', 'team', 'positions'].concat(result.value);
                 setColumnsB(allColumn);
+                const columns_b = allColumn;
 
                 response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/league?league=${league}&value=categories_p`,
@@ -46,6 +48,28 @@ const Team = () => {
                 result = await response.json();
                 allColumn = ['name', 'team', 'positions'].concat(result.value);
                 setColumnsP(allColumn);
+                const columns_p = allColumn;
+
+                response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/get/rosters?team=${team}&isBatter=true`,
+                    {method: 'GET'}
+                );
+                result = await response.json();
+                let batters = result.players;
+
+                response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/search/players`,
+                    {method: 'Post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({"players": batters,
+                                              "categories": columns_b,
+                                              "isBatter": true})
+                    }
+                );
+                result = await response.json();
+                setBatterData(result.data);
             }  catch (err) {
                 setError(err.message);
             } finally {
@@ -72,7 +96,13 @@ const Team = () => {
                 </thead>
 
                 <tbody>
-            
+                    {batterData.map((player) => (
+                        <tr key={player}>
+                            {columnsB.map((col) => {
+                                return (<td key={col}>{player[col]}</td>)
+                            })}
+                        </tr>
+                    ))}
                 </tbody>
             </table>
 

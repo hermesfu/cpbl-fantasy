@@ -19,7 +19,7 @@ teams = db.team
 player_state = db.player_state
 
 '''
-Route to return a player list in roster with a given id and position
+Route to return a player list in roster with a given team id and position
 input: team(id), position(string)
 return: players(list of id)
 '''
@@ -29,6 +29,29 @@ def get_roster():
         getRoster = rosters.find_one({'_id': ObjectId(request.args.get('team'))})
         position = request.args.get('position')
         return jsonify({'players': getRoster[position]})
+    except:
+        return jsonify({'players': None})
+
+'''
+Route to return a 2D list of an entire team roster with a given team id
+input: team(id), isBatter(boolean)
+return: players(2D list [string, id])
+'''    
+@roster_bp.route('/get/rosters', methods=['GET'])
+def get_rosters():
+    positions = []
+    if request.args.get('team'):
+        positions = ["C", "1B", "2B", "3B", "SS", "IF", "LF", "CF", "RF", "OF", "BEN", "O"]
+    else:
+        positions = ["SP", "RP", "P"]
+    players = []
+
+    try:
+        entry = rosters.find_one({"_id": ObjectId(request.args.get('team'))})
+        for position in positions:
+            for p in entry[position]:
+                players.append([position, p])
+        return jsonify({'players': players})  
     except:
         return jsonify({'players': None})
 
