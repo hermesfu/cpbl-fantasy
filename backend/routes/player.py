@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import pandas as pd
 import math
 from bson.objectid import ObjectId
+import json
 
 player_bp = Blueprint('player', __name__)
 
@@ -81,19 +82,26 @@ def search_players():
         all_data = pd.DataFrame()
 
         for player in data['players']:
-            player_data = None
-            if data['isBatter']:
-                player_data = batters.find_one({"_id": ObjectId(player[1])})
+            if player[1]:
+                player_data = None
+                if data['isBatter']:
+                    player_data = batters.find_one({"_id": ObjectId(player[1])})
+                else:
+                    player_data = pitchers.find_one({"_id": ObjectId(player[1])})
+
+                player_data = pd.DataFrame([player_data])       
+
+                player_data = player_data[data['categories']]
+                player_data["_id"] = player[1]
+                player_data["position"] = player[0]
+                all_data = pd.concat([all_data, player_data],  ignore_index = True)
             else:
-                player_data = pitchers.find_one({"_id": ObjectId(player[1])})
+                all_data.loc[len(all_data)] = {}
+                all_data.loc[len(all_data) - 1, 'position'] = player[0]
 
-            player_data = pd.DataFrame([player_data])       
-            player_data = player_data[data['categories']]
-            player_data["_id"] = player[1]
-            player_data["position"] = player[0]
-            all_data = pd.concat([all_data, player_data],  ignore_index = True)
-
-        return jsonify({"data": all_data.to_dict(orient="records")})
+        json_string_data = all_data.to_json(orient="records")
+        python_data_structure = json.loads(json_string_data)
+        return jsonify({"data": python_data_structure})
     except Exception as e:
         print(e)
         return jsonify({"data": None})

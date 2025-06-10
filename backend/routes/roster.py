@@ -17,6 +17,7 @@ db = client.cpblfantasy
 rosters = db.roster
 teams = db.team
 player_state = db.player_state
+requirements = db.requirement
 
 '''
 Route to return a player list in roster with a given team id and position
@@ -40,17 +41,22 @@ return: players(2D list [string, id])
 @roster_bp.route('/get/rosters', methods=['GET'])
 def get_rosters():
     positions = []
-    if request.args.get('team'):
-        positions = ["C", "1B", "2B", "3B", "SS", "IF", "LF", "CF", "RF", "OF", "BEN", "O"]
+    if request.args.get('isBatter') == "true":
+        positions = ["C", "1B", "2B", "3B", "SS", "IF", "LF", "CF", "RF", "OF"]
     else:
         positions = ["SP", "RP", "P"]
     players = []
 
     try:
-        entry = rosters.find_one({"_id": ObjectId(request.args.get('team'))})
+        roster = rosters.find_one({"_id": ObjectId(request.args.get('team'))})
+        requirement = requirements.find_one({"_id": ObjectId(teams.find_one({"_id": ObjectId(request.args.get('team'))})['league'])})
+
         for position in positions:
-            for p in entry[position]:
+            for p in roster[position]:
                 players.append([position, p])
+            for i in range(requirement[position] - len(roster[position])):
+                players.append([position, None])
+
         return jsonify({'players': players})  
     except:
         return jsonify({'players': None})
