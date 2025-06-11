@@ -72,6 +72,8 @@ const Team = () => {
                 allColumn = ['name', 'team', 'positions'].concat(result.value);
                 setColumnsP(allColumn);
                 const columns_p = allColumn;
+                allColumn = ['position'].concat(allColumn);
+                setColumnsP(allColumn);
 
                 response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/rosters?team=${team}&isBatter=false`,
@@ -104,26 +106,13 @@ const Team = () => {
     }, [updatePage])
 
     //function for drop player button
-    const dropPlayer = async(playerID, positions) => {
-        let deletePosition = null;
-        positions = positions.concat("BEN");
-
-        for (const position of positions) {
-            let response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/roster?team=${team}&position=${position}`,
-                                        {method: 'GET'});
-            let result = await response.json();
-            if (result.players.includes(playerID)) {
-                deletePosition = position;
-                break;
-            }
-        }
-
+    const dropPlayer = async(playerID, position) => {
         await fetch(`${import.meta.env.VITE_SERVER_URL}/drop/player`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({"team": team, "player": playerID, "position": deletePosition}),
+            body: JSON.stringify({"team": team, "player": playerID, "position": position}),
         });
 
         alert("Drop paleyr successfully!");
@@ -151,7 +140,10 @@ const Team = () => {
                 <tbody>
                     {batterData.map((player) => (
                         <tr key={player}>
-                            <td><button type="button" onClick={() => dropPlayer(player["_id"].toString(), player["positions"])}>Drop</button></td>
+                            {player["_id"] ? 
+                               (<td><button type="button" onClick={() => dropPlayer(player["_id"].toString(), player["position"])}>Drop</button></td>)
+                             : (<td></td>)
+                            } 
                             {columnsB.map((col) => {
                                 if (col === "positions" && player[col]) return (<td key={col}>{player[col].toString()}</td>)
                                 else return (<td key={col}>{player[col]}</td>)
@@ -175,7 +167,10 @@ const Team = () => {
                 <tbody>
                     {pitcherData.map((player) => (
                         <tr key={player}>
-                            <td><button type="button" onClick={() => dropPlayer(player["_id"].toString(), player["positions"])}>Drop</button></td>
+                            {player["_id"] ? 
+                               (<td><button type="button" onClick={() => dropPlayer(player["_id"].toString(), player["position"])}>Drop</button></td>)
+                             : (<td></td>)
+                            }
                             {columnsP.map((col) => {
                                 if (col === "positions" && player[col]) return (<td key={col}>{player[col].toString()}</td>)
                                 else return (<td key={col}>{player[col]}</td>)

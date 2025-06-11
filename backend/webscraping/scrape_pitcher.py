@@ -52,12 +52,12 @@ async def scraper():
             team = columnzero[-2]
 
             #SP or RP
-            positions = ['P']
+            positions = []
             if (int(row_data[3]) > 0):
                 positions.append("SP")
             if (int(row_data[4]) > 0):
                 positions.append("RP")
-            positions.sort()
+            positions.append("P")
 
             pitchers.update_one({"name": playername},
                                 {"$set": {"team": team,

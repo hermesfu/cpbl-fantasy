@@ -6,6 +6,7 @@ import pandas as pd
 import math
 from bson.objectid import ObjectId
 import json
+import numpy as np
 
 player_bp = Blueprint('player', __name__)
 
@@ -94,10 +95,16 @@ def search_players():
                 player_data = player_data[data['categories']]
                 player_data["_id"] = player[1]
                 player_data["position"] = player[0]
-                all_data = pd.concat([all_data, player_data],  ignore_index = True)
             else:
-                all_data.loc[len(all_data)] = {}
-                all_data.loc[len(all_data) - 1, 'position'] = player[0]
+                #fill up with None
+                player_data = {}
+                for c in data['categories']:
+                    player_data[c] = None
+                player_data["_id"] = player[1]
+                player_data["position"] = player[0]
+                player_data = pd.DataFrame(player_data, index=[0])
+
+            all_data = pd.concat([all_data, player_data],  ignore_index = True)
 
         json_string_data = all_data.to_json(orient="records")
         python_data_structure = json.loads(json_string_data)

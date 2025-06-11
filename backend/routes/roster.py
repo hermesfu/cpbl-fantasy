@@ -18,6 +18,8 @@ rosters = db.roster
 teams = db.team
 player_state = db.player_state
 requirements = db.requirement
+batters = db.batter
+pitchers = db.pitcher
 
 '''
 Route to return a player list in roster with a given team id and position
@@ -42,7 +44,7 @@ return: players(2D list [string, id])
 def get_rosters():
     positions = []
     if request.args.get('isBatter') == "true":
-        positions = ["C", "1B", "2B", "3B", "SS", "IF", "LF", "CF", "RF", "OF"]
+        positions = ["C", "1B", "2B", "3B", "SS", "IF", "LF", "CF", "RF", "OF", "Util"]
     else:
         positions = ["SP", "RP", "P"]
     players = []
@@ -56,6 +58,14 @@ def get_rosters():
                 players.append([position, p])
             for i in range(requirement[position] - len(roster[position])):
                 players.append([position, None])
+
+        #bench and out can be either batter or pitcher, so making sure here
+        for p in roster['BEN']:
+            if ((request.args.get('isBatter') == "true") and batters.find_one({"_id": ObjectId(p)})) or ((request.args.get('isBatter') == "false") and pitchers.find_one({"_id": ObjectId(p)})):
+               players.append(['BEN', p])
+        for p in roster['O']:
+            if ((request.args.get('isBatter') == "ture") and batters.find_one({"_id": ObjectId(p)})) or ((request.args.get('isBatter') == "false") and pitchers.find_one({"_id": ObjectId(p)})):
+               players.append(['O', p])
 
         return jsonify({'players': players})  
     except:
