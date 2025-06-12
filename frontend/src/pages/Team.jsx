@@ -10,6 +10,8 @@ const Team = () => {
     const [pitcherData, setPitcherData] = useState(null);
     const [name, setName] = useState("");
     const [updatePage, setUpdatePage] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [selectedPositions, setSelectedPositions] = useState(null);
 
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
@@ -103,7 +105,7 @@ const Team = () => {
         }
 
         fetchData();
-    }, [updatePage])
+    }, [updatePage, selectedPlayer])
 
     //function for drop player button
     const dropPlayer = async(playerID, position) => {
@@ -117,6 +119,24 @@ const Team = () => {
 
         alert("Drop paleyr successfully!");
         setUpdatePage(!updatePage);
+    }
+
+    //function for selecting the first player to swap
+    const selectPlayer = (player, positions) => {
+        setSelectedPlayer(player);
+        setSelectedPositions(positions);
+    }
+
+    //function for unselecting the player to swap
+    const unselectPlayer = () => {
+        setSelectedPlayer(null);
+        setSelectedPositions(null);
+    }
+
+    //to be implemented
+    const swapPlayer = () => {
+        setSelectedPlayer(null);
+        setSelectedPositions(null);
     }
 
     if (loading) return <p>Loading...</p>;
@@ -146,6 +166,16 @@ const Team = () => {
                             } 
                             {columnsB.map((col) => {
                                 if (col === "positions" && player[col]) return (<td key={col}>{player[col].toString()}</td>)
+                                else if (col === "position") {
+                                    if (!selectedPlayer) return (<td><button type="button" onClick={() => selectPlayer(player["_id"].toString(), player["positions"])}>{player["position"]}</button></td>)
+                                    else {
+                                        if (player["_id"] === selectedPlayer) return (<td><button type="button" onClick={() => unselectPlayer()}>{player["position"]}</button></td>)
+                                        else {
+                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer()}>{player["position"]}</button></td>)
+                                            else return (<td>{player["position"]}</td>)
+                                        }
+                                    }
+                                }
                                 else return (<td key={col}>{player[col]}</td>)
                             })}
                         </tr>
@@ -173,6 +203,16 @@ const Team = () => {
                             }
                             {columnsP.map((col) => {
                                 if (col === "positions" && player[col]) return (<td key={col}>{player[col].toString()}</td>)
+                                else if (col === "position") {
+                                    if (!selectedPlayer) return (<td><button type="button" onClick={() => selectPlayer(player["_id"].toString(), player["positions"])}>{player["position"]}</button></td>)
+                                    else {
+                                        if (player["_id"] === selectedPlayer) return (<td><button type="button" onClick={() => unselectPlayer()}>{player["position"]}</button></td>)
+                                        else {
+                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer()}>{player["position"]}</button></td>)
+                                            else return (<td>{player["position"]}</td>)
+                                        }
+                                    }
+                                }
                                 else return (<td key={col}>{player[col]}</td>)
                             })}
                         </tr>
