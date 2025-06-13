@@ -73,7 +73,7 @@ def get_rosters():
 
 '''
 Route to add a player to a team roster
-input: team(id), position(string), player(id)
+input: team(id), player(id), positions(list of string)
 return: success(boolean)
 '''
 @roster_bp.route('/add/player', methods=['POST'])
@@ -85,8 +85,19 @@ def add_player():
         if not updated_team:
             return jsonify({'success': False})
         
+        requirment = requirements.find_one({"_id": ObjectId(updated_team['league'])})
+        roster = rosters.find_one({"_id": ObjectId(data['team'])})
+        addPosition = None
+        for position in (data['positions'] + ["BEN"]):
+            if requirment[position] > len(roster[position]):
+                addPosition = position
+                break
+
+        if not addPosition:
+            return jsonify({'success': False})
+        
         rosters.update_one({"_id": ObjectId(data['team'])},
-                        {"$push": {data['position']: data['player']}})
+                        {"$push": {addPosition: data['player']}})
         teams.update_one({"_id": ObjectId(data['team'])},
                          {"$inc": {"playerCount": 1}})
         
@@ -124,23 +135,26 @@ def drop_player():
 
 '''
 Route to swap two players in a team roster
-input: team(id), position1(string), player1(id), position2(string), player2(id)
+input: team(id), player1(id), position1(string),
+                 player2(id), position2(string), positions2(list of string),
 return: success(boolean)
 '''
 @roster_bp.route('/swap/player', methods=['POST'])
 def swap_player():
     try:
         data = request.json
-        if not rosters.find_one({"_id": data['team']}):
+        if not rosters.find_one({"_id": ObjectId(data['team'])}):
             return jsonify({'success': False})
         
-        rosters.update_one({"_id": data['team']},
-                        {"$push": {data['position1']: data['player2']}},
-                        {"$push": {data['position1']: data['player1']}})
-        rosters.update_one({"_id": data['team']},
-                        {"$push": {data['position2']: data['player1']}},
-                        {"$push": {data['position2']: data['player2']}})
+        rosters.update_one({"_id": ObjectId(data['team'])},
+                           {
+                                "$push": {data['position2']: data['player1']},
+                                "$pull": {data['position1']: data['player1']},
+                                "$push": {data['position1']: data['player2']},
+                                "$pull": {data['position2']: data['player2']}
+                           })
         
         return jsonify({'success': True})
-    except:
+    except Exception as e:
+        print(e)
         return jsonify({'success': False})

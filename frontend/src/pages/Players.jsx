@@ -169,40 +169,19 @@ const Players = () => {
 
   //function for add player button
   const addPlayer = async(playerID, positions) => {
-    let emptyPosition = null;
-    positions = positions.concat("BEN");
+    const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/add/player`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({"team": teamID, "player": playerID, "positions": positions}),
+    });
 
-    for (const position of positions) {
-      let response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/requirement?league=${leagueID}&position=${position}`,
-                                  {method: 'GET'});
-      let result = await response.json();
-      let cnt = result.value;
+    const result = await response.json();
+    if (result.success) alert("Add paleyr successfully!");
+    else alert("The positions for the selected player in your team is full");
 
-      response = await fetch(`${import.meta.env.VITE_SERVER_URL}/get/roster?team=${teamID}&position=${position}`,
-                                  {method: 'GET'});
-      result = await response.json();
-      cnt -= result.players.length;
-
-      if (cnt > 0) {
-        emptyPosition = position;
-        break;
-      }
-    }
-
-    if (!emptyPosition) alert("There is no space for the given player based on the player's positions and your team roster, please check again for your roster.");
-    else {
-      await fetch(`${import.meta.env.VITE_SERVER_URL}/add/player`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({"team": teamID, "player": playerID, "position": emptyPosition}),
-      });
-
-      alert("Add paleyr successfully!");
-
-      setUpdatePage(!updatePage);
-    }    
+    setUpdatePage(!updatePage); 
   }
 
   //function for drop player button

@@ -11,6 +11,7 @@ const Team = () => {
     const [name, setName] = useState("");
     const [updatePage, setUpdatePage] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [selectedPosition, setSelectedPosition] = useState(null);
     const [selectedPositions, setSelectedPositions] = useState(null);
 
     const location = useLocation();
@@ -122,20 +123,38 @@ const Team = () => {
     }
 
     //function for selecting the first player to swap
-    const selectPlayer = (player, positions) => {
+    const selectPlayer = (player, position, positions) => {
         setSelectedPlayer(player);
+        setSelectedPosition(position);
         setSelectedPositions(positions);
     }
 
     //function for unselecting the player to swap
     const unselectPlayer = () => {
         setSelectedPlayer(null);
+        setSelectedPosition(null);
         setSelectedPositions(null);
     }
 
     //to be implemented
-    const swapPlayer = () => {
+    const swapPlayer = async(player, position, positions) => {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/swap/player`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({"team": team, "player1": selectedPlayer, "position1": selectedPosition,
+                                  "player2": player, "position2": position, "positions2": positions
+            }),
+        });
+
+        const result = await response.json;
+        if (result.success == "False") alert("error");
+
+        setUpdatePage(!updatePage);
+
         setSelectedPlayer(null);
+        setSelectedPosition(null);
         setSelectedPositions(null);
     }
 
@@ -167,11 +186,11 @@ const Team = () => {
                             {columnsB.map((col) => {
                                 if (col === "positions" && player[col]) return (<td key={col}>{player[col].toString()}</td>)
                                 else if (col === "position") {
-                                    if (!selectedPlayer) return (<td><button type="button" onClick={() => selectPlayer(player["_id"].toString(), player["positions"])}>{player["position"]}</button></td>)
+                                    if (!selectedPlayer) return (<td><button type="button" onClick={() => selectPlayer(player["_id"].toString(), player["position"], player["positions"])}>{player["position"]}</button></td>)
                                     else {
                                         if (player["_id"] === selectedPlayer) return (<td><button type="button" onClick={() => unselectPlayer()}>{player["position"]}</button></td>)
                                         else {
-                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer()}>{player["position"]}</button></td>)
+                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer(player["_id"].toString(), player["position"], player["positions"])}>{player["position"]}</button></td>)
                                             else return (<td>{player["position"]}</td>)
                                         }
                                     }
@@ -204,11 +223,11 @@ const Team = () => {
                             {columnsP.map((col) => {
                                 if (col === "positions" && player[col]) return (<td key={col}>{player[col].toString()}</td>)
                                 else if (col === "position") {
-                                    if (!selectedPlayer) return (<td><button type="button" onClick={() => selectPlayer(player["_id"].toString(), player["positions"])}>{player["position"]}</button></td>)
+                                    if (!selectedPlayer) return (<td><button type="button" onClick={() => selectPlayer(player["_id"].toString(), player["position"], player["positions"])}>{player["position"]}</button></td>)
                                     else {
                                         if (player["_id"] === selectedPlayer) return (<td><button type="button" onClick={() => unselectPlayer()}>{player["position"]}</button></td>)
                                         else {
-                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer()}>{player["position"]}</button></td>)
+                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer(player["_id"].toString(), player["position"], player["positions"])}>{player["position"]}</button></td>)
                                             else return (<td>{player["position"]}</td>)
                                         }
                                     }
