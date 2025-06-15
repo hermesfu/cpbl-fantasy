@@ -138,6 +138,7 @@ const Team = () => {
 
     //to be implemented
     const swapPlayer = async(player, position, positions) => {
+        if (player) player = player.toString();
         const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/swap/player`, {
             method: 'POST',
             headers: {
@@ -148,8 +149,8 @@ const Team = () => {
             }),
         });
 
-        const result = await response.json;
-        if (result.success == "False") alert("error");
+        const result = await response.json();
+        if (!result.success) alert("Not enough space for the swapped player in your roster, please check that again");
 
         setUpdatePage(!updatePage);
 
@@ -190,7 +191,7 @@ const Team = () => {
                                     else {
                                         if (player["_id"] === selectedPlayer) return (<td><button type="button" onClick={() => unselectPlayer()}>{player["position"]}</button></td>)
                                         else {
-                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer(player["_id"].toString(), player["position"], player["positions"])}>{player["position"]}</button></td>)
+                                            if (selectedPositions.includes(player["position"]) && selectedPosition !== player["position"]) return (<td><button type="button" onClick={() => swapPlayer(player["_id"], player["position"], player["positions"])}>{player["position"]}</button></td>)
                                             else return (<td>{player["position"]}</td>)
                                         }
                                     }
@@ -227,7 +228,7 @@ const Team = () => {
                                     else {
                                         if (player["_id"] === selectedPlayer) return (<td><button type="button" onClick={() => unselectPlayer()}>{player["position"]}</button></td>)
                                         else {
-                                            if (selectedPositions.includes(player["position"])) return (<td><button type="button" onClick={() => swapPlayer(player["_id"].toString(), player["position"], player["positions"])}>{player["position"]}</button></td>)
+                                            if (selectedPositions.includes(player["position"]) && selectedPosition !== player["position"]) return (<td><button type="button" onClick={() => swapPlayer(player["_id"], player["position"], player["positions"])}>{player["position"]}</button></td>)
                                             else return (<td>{player["position"]}</td>)
                                         }
                                     }

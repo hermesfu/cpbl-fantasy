@@ -136,7 +136,7 @@ def drop_player():
 '''
 Route to swap two players in a team roster
 input: team(id), player1(id), position1(string),
-                 player2(id), position2(string), positions2(list of string),
+                 player2(id), position2(string), positions2(list of string)
 return: success(boolean)
 '''
 @roster_bp.route('/swap/player', methods=['POST'])
@@ -146,13 +146,38 @@ def swap_player():
         if not rosters.find_one({"_id": ObjectId(data['team'])}):
             return jsonify({'success': False})
         
+        positionTo = None
+        if (not data['player2']) or (data['position1'] in data['positions2']) or (data['position1'] == "BEN"):
+            #swap directly
+            positionTo = data['position1']
+        else:
+            #find empty position to fit
+            leagueID = teams.find_one({"_id": ObjectId(data['team'])})['league']
+            requirement = requirements.find_one({"_id": ObjectId(leagueID)})
+            roster = rosters.find_one({"_id": ObjectId(data['team'])})
+            for p in data['positions2']:
+                if requirement[p] > len(roster[p]):
+                    positionTo = p
+                    break
+            if not positionTo:
+                if requirement["BEN"] > len(roster["BEN"]):
+                    positionTo = "BEN"
+                else:
+                    return jsonify({'success': False})
+        
         rosters.update_one({"_id": ObjectId(data['team'])},
                            {
                                 "$push": {data['position2']: data['player1']},
                                 "$pull": {data['position1']: data['player1']},
-                                "$push": {data['position1']: data['player2']},
-                                "$pull": {data['position2']: data['player2']}
                            })
+        
+        #can swap with empty space, so make a case to check
+        if (data['player2']):
+            rosters.update_one({"_id": ObjectId(data['team'])},
+                           {
+                                "$push": {positionTo: data['player2']},
+                                "$pull": {data['position2']: data['player2']}
+                           })       
         
         return jsonify({'success': True})
     except Exception as e:
