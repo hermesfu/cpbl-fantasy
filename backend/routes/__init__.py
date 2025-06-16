@@ -4,6 +4,7 @@ from .league import league_bp
 from .team import team_bp
 from .requirement import requirement_bp
 from .roster import roster_bp
+from .matchup import matchup_bp
 
 def register_blueprints(app):
     app.register_blueprint(user_bp)
@@ -12,3 +13,4 @@ def register_blueprints(app):
     app.register_blueprint(team_bp)
     app.register_blueprint(requirement_bp)
     app.register_blueprint(roster_bp)
+    app.register_blueprint(matchup_bp)
