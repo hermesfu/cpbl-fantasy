@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+import pandas as pd
 
 matchup_bp = Blueprint('matchup', __name__)
 
@@ -62,3 +63,23 @@ def update_matchup():
         return jsonify({'success': True})
     except:
         return jsonify({'success': False}) 
+    
+'''
+Route to calculate the total of each column from a table of player data
+sum up for integer, mean for float
+input: data(table)
+output: dictionary
+'''
+@matchup_bp.route('/calculate/total', methods=['POST'])
+def calculate_total():
+    try:
+        df = pd.DataFrame(request.json['data'])
+        result = {}
+        for c in df.columns:
+            if df[c].dtype == "int64" or df[c].dtype == "int32":
+                result[c] = int(df[c].sum())
+            elif df[c].dtype == "float64" or df[c].dtype == "float32":
+                result[c] = float(df[c].mean())
+        return jsonify(result)
+    except:
+        return jsonify({'sucess': False})

@@ -4,20 +4,27 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Matchup = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [updatePage, setUpdatePage] = useState(false);
+
     const [columnsB, setColumnsB] = useState([]);
     const [columnsP, setColumnsP] = useState([]);
+
     const [batterData1, setBatterData1] = useState(null);
     const [batterData2, setBatterData2] = useState(null);
     const [pitcherData1, setPitcherData1] = useState(null);
     const [pitcherData2, setPitcherData2] = useState(null);
     const [name1, setName1] = useState("");
     const [name2, setName2] = useState("");
-    const [updatePage, setUpdatePage] = useState(false);
+
+    const [total1, setTotal1] = useState(null);
+    const [total2, setTotal2] = useState(null);
+    const [score1, setScore1] = useState(0);
+    const [score2, setScore2] = useState(0);
 
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
 
-    const matchup = queryParams.get('M');
+    const matchup = queryParams.get('id');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -89,6 +96,18 @@ const Matchup = () => {
                 setBatterData1(result.data);
 
                 response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/calculate/total`,
+                    {method: 'Post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({"data": result.data})
+                    }
+                );
+                result = await response.json();
+                let totalStat1 = result;
+
+                response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/rosters?team=${team2}&isBatter=true`,
                     {method: 'GET'}
                 );
@@ -108,6 +127,18 @@ const Matchup = () => {
                 );
                 result = await response.json();
                 setBatterData2(result.data);
+
+                response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/calculate/total`,
+                    {method: 'Post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({"data": result.data})
+                    }
+                );
+                result = await response.json();
+                let totalStat2 = result;
 
                 response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/league?league=${league}&value=categories_p`,
@@ -142,6 +173,19 @@ const Matchup = () => {
                 setPitcherData1(result.data);
 
                 response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/calculate/total`,
+                    {method: 'Post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({"data": result.data})
+                    }
+                );
+                result = await response.json();
+                totalStat1 = {...totalStat1, ...result};
+                setTotal1(totalStat1);
+
+                response = await fetch(
                     `${import.meta.env.VITE_SERVER_URL}/get/rosters?team=${team2}&isBatter=false`,
                     {method: 'GET'}
                 );
@@ -161,6 +205,19 @@ const Matchup = () => {
                 );
                 result = await response.json();
                 setPitcherData2(result.data);
+
+                response = await fetch(
+                    `${import.meta.env.VITE_SERVER_URL}/calculate/total`,
+                    {method: 'Post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({"data": result.data})
+                    }
+                );
+                result = await response.json();
+                totalStat2 = {...totalStat2, ...result};
+                setTotal2(totalStat1);                
             }  catch (err) {
                 setError(err.message);
             } finally {
