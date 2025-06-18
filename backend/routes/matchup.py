@@ -79,7 +79,7 @@ def calculate_total():
             if df[c].dtype == "int64" or df[c].dtype == "int32":
                 result[c] = int(df[c].sum())
             elif df[c].dtype == "float64" or df[c].dtype == "float32":
-                result[c] = float(df[c].mean())
+                result[c] = round(float(df[c].mean()), 3)
         return jsonify(result)
     except:
         return jsonify({'sucess': False})

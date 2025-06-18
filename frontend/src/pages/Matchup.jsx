@@ -217,7 +217,22 @@ const Matchup = () => {
                 );
                 result = await response.json();
                 totalStat2 = {...totalStat2, ...result};
-                setTotal2(totalStat1);                
+                setTotal2(totalStat2);  
+                
+                let tmpscore1 = 0
+                let tmpscore2 = 0
+
+                for (const key in totalStat1) {
+                    if (key === "ERA" || key === "WHIP") {
+                        if (totalStat1[key] < totalStat2[key]) tmpscore1++;
+                        else tmpscore2++;
+                    } else {
+                        if (totalStat1[key] > totalStat2[key]) tmpscore1++;
+                        else tmpscore2++;
+                    }
+                }
+                setScore1(tmpscore1);
+                setScore2(tmpscore2);
             }  catch (err) {
                 setError(err.message);
             } finally {
@@ -235,7 +250,56 @@ const Matchup = () => {
         <div>
             <div>
                 <h1>{name1}</h1>
+                <h1>{score1}</h1>
+                <h1>{name2}</h1>
+                <h1>{score2}</h1>
+            </div>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            {columnsB.map(col => {
+                                if (col !== "position" && col !== "name" && col !== "team") {
+                                    return (<th key={col}>{col}</th>);
+                                }
+                            })}
+                            {columnsP.map(col => {
+                                if (col !== "position" && col !== "name" && col !== "team") {
+                                    return (<th key={col}>{col}</th>);
+                                }
+                            })}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            {columnsB.map(col => {
+                                if (col !== "position" && col !== "name" && col !== "team") {
+                                    return (<td key={col}>{total1[col]}</td>);
+                                }
+                            })}
+                            {columnsP.map(col => {
+                                    if (col !== "position" && col !== "name" && col !== "team") {
+                                        return (<td key={col}>{total1[col]}</td>);
+                                    }
+                            })}
+                        </tr>
+                        <tr>
+                            {columnsB.map(col => {
+                                if (col !== "position" && col !== "name" && col !== "team") {
+                                    return (<td key={col}>{total2[col]}</td>);
+                                }
+                            })}
+                            {columnsP.map(col => {
+                                    if (col !== "position" && col !== "name" && col !== "team") {
+                                        return (<td key={col}>{total2[col]}</td>);
+                                    }
+                            })}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
+            <div>
                 <table>
                     <thead>
                         <tr>
@@ -278,8 +342,6 @@ const Matchup = () => {
             </div>
             
             <div>
-                <h1>{name2}</h1>
-
                 <table>
                     <thead>
                         <tr>
