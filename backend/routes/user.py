@@ -26,7 +26,7 @@ def login():
     name = data['username']
     entry = users.find_one({"name":name})
     if entry:
-        if entry['password'] == data['password']:
+        if entry['password'] == hash(data['password']):
             return jsonify({"success": True})
         else:
             return jsonify({"success": False})
@@ -49,7 +49,7 @@ def register():
     else:
         user_info = {
             "name": name,
-            "password": data["password"],
+            "password": hash(data["password"]),
             "teams": []
         }
         users.insert_one(user_info)

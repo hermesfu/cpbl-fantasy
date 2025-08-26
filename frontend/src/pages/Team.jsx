@@ -17,7 +17,7 @@ const Team = () => {
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
 
-    const team = queryParams.get('T');
+    const team = queryParams.get('id');
 
     useEffect(() => {
         const fetchData = async () => {
