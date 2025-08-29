@@ -52,7 +52,7 @@ def get_players():
         player_data = player_data.sort_values(request_data['sortby'], ascending = request_data['ascending'])
 
         totalPage = math.ceil(player_data.shape[0] / 25)
-        start = (request_data['page'] - 1) * 25 + 1
+        start = (request_data['page'] - 1) * 25
         end = start + 25
 
         if start > player_data.shape[0]:
@@ -66,7 +66,7 @@ def get_players():
                                                         "player": ObjectId(id)}))
         player_data['status'] = player_data['status'].apply(lambda entry: 
                                                          str(entry['team']) if entry else None)
-                
+                        
         return jsonify({"data": player_data.to_dict(orient="records"), "totalPage": totalPage})
     except:
         return jsonify({"data": None, "totalPage": 0})
