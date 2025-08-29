@@ -46,8 +46,10 @@ async def scraper():
                 continue
             
             columnzero = row_data[0].replace(' ', '').split('\n')
-            playername = columnzero[-1]
-            team = columnzero[-2]
+            playername = columnzero[3]
+            playername = playername.replace('#', '')
+            playername = playername.replace('＃', '')
+            team = columnzero[2]
 
             batters.update_one({"name": playername},
                                 {"$set": {"team": team,

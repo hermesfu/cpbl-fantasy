@@ -48,8 +48,10 @@ async def scraper():
                 row_data.append(text.strip())
             
             columnzero = row_data[0].replace(' ', '').split('\n')
-            playername = columnzero[-1]
-            team = columnzero[-2]
+            playername = columnzero[3]
+            playername = playername.replace('#', '')
+            playername = playername.replace('＃', '')
+            team = columnzero[2]
 
             #SP or RP
             positions = []
