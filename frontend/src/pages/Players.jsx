@@ -16,7 +16,7 @@ const Players = () => {
   //prcocess query string with queryParams
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const teamID = queryParams.get('TID') || '';
+  const teamID = queryParams.get('id') || '';
   const name = queryParams.get('N') || '';
   const position = queryParams.get('P') || 'P';
   const sortby = queryParams.get('C') || 'name';
