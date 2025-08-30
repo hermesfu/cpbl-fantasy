@@ -225,10 +225,10 @@ const Matchup = () => {
                 for (const key in totalStat1) {
                     if (key === "ERA" || key === "WHIP") {
                         if (totalStat1[key] < totalStat2[key]) tmpscore1++;
-                        else tmpscore2++;
+                        else if (totalStat1[key] > totalStat2[key]) tmpscore2++;
                     } else {
                         if (totalStat1[key] > totalStat2[key]) tmpscore1++;
-                        else tmpscore2++;
+                        else if (totalStat1[key] < totalStat2[key]) tmpscore2++;
                     }
                 }
                 setScore1(tmpscore1);
@@ -249,10 +249,7 @@ const Matchup = () => {
     return (
         <div>
             <div>
-                <h1>{name1}</h1>
-                <h1>{score1}</h1>
-                <h1>{name2}</h1>
-                <h1>{score2}</h1>
+                <h1>{name1} {score1} : {score2} {name2}</h1>
             </div>
             <div>
                 <table>
@@ -274,24 +271,56 @@ const Matchup = () => {
                         <tr>
                             {columnsB.map(col => {
                                 if (col !== "position" && col !== "name" && col !== "team") {
-                                    return (<td key={col}>{total1[col]}</td>);
+                                    if (total1[col] > total2[col]) {
+                                        return (<td key={col}><strong>{total1[col]}</strong></td>);
+                                    } else {
+                                        return (<td key={col}>{total1[col]}</td>);
+                                    }
                                 }
                             })}
                             {columnsP.map(col => {
-                                    if (col !== "position" && col !== "name" && col !== "team") {
-                                        return (<td key={col}>{total1[col]}</td>);
+                                if (col !== "position" && col !== "name" && col !== "team") {
+                                    if (col === "ERA" || col == "WHIP") {
+                                        if (total1[col] < total2[col]) {
+                                            return (<td key={col}><strong>{total1[col]}</strong></td>);
+                                        } else {
+                                            return (<td key={col}>{total1[col]}</td>);
+                                        }
+                                    } else {
+                                        if (total1[col] > total2[col]) {
+                                            return (<td key={col}><strong>{total1[col]}</strong></td>);
+                                        } else {
+                                            return (<td key={col}>{total1[col]}</td>);
+                                        }
                                     }
+                                }
                             })}
                         </tr>
                         <tr>
                             {columnsB.map(col => {
                                 if (col !== "position" && col !== "name" && col !== "team") {
-                                    return (<td key={col}>{total2[col]}</td>);
+                                    if (total1[col] < total2[col]) {
+                                        return (<td key={col}><strong>{total2[col]}</strong></td>);
+                                    } else {
+                                        return (<td key={col}>{total2[col]}</td>);
+                                    }
                                 }
                             })}
                             {columnsP.map(col => {
                                     if (col !== "position" && col !== "name" && col !== "team") {
-                                        return (<td key={col}>{total2[col]}</td>);
+                                        if (col === "ERA" || col == "WHIP") {
+                                            if (total1[col] > total2[col]) {
+                                                return (<td key={col}><strong>{total2[col]}</strong></td>);
+                                            } else {
+                                                return (<td key={col}>{total2[col]}</td>);
+                                            }
+                                        } else {
+                                            if (total1[col] < total2[col]) {
+                                                return (<td key={col}><strong>{total2[col]}</strong></td>);
+                                            } else {
+                                                return (<td key={col}>{total2[col]}</td>);
+                                            }
+                                        }
                                     }
                             })}
                         </tr>
